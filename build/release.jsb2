@@ -1,0 +1,54 @@
+{
+  "projectName": "SalesLogix Mobile Compatability Pack (2.0 for 7.5.4) Module",
+  "licenseText": "",
+  "deployDir": "deploy/",
+  "pkgs": [
+    {
+      "name": "SalesLogix Mobile BackCompat 20 for 754",
+      "file": "content/javascript/argos-backcompat_20_for_754.js",
+      "isDebug": true,
+      "fileIncludes": [
+        {
+          "text": "Complete.js",
+          "path": "../src/Views/Activity"
+        },
+        {
+          "text": "Detail.js",
+          "path": "../src/Views/Activity"
+        },
+        {
+          "text": "Edit.js",
+          "path": "../src/Views/Activity"
+        },
+        {
+          "text": "DayView.js",
+          "path": "../src/Views/Calendar"
+        },
+        {
+          "text": "MonthView.js",
+          "path": "../src/Views/Calendar"
+        },
+        {
+          "text": "WeekView.js",
+          "path": "../src/Views/Calendar"
+        },
+        {
+          "text": "ApplicationModule.js",
+          "path": "../src"
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "src": "../content",
+      "dest": "content",
+      "filters": ".*(\\.css|\\.jpg|\\.png|\\.gif)"
+    },
+    {
+      "src": "../configuration",
+      "dest": "configuration/backcompat",
+      "filters": ".*\\.js"
+    }
+  ]
+}
