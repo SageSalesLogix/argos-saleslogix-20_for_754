@@ -27,7 +27,9 @@ define('Mobile/BackCompat/ApplicationModule', [
 
     'Mobile/BackCompat/Views/Calendar/DayView',
     'Mobile/BackCompat/Views/Calendar/WeekView',
-    'Mobile/BackCompat/Views/Calendar/MonthView'
+    'Mobile/BackCompat/Views/Calendar/MonthView',
+
+    'Mobile/SalesLogix/Views/Activity/List'
 ], function(
     declare,
     lang,
@@ -41,7 +43,8 @@ define('Mobile/BackCompat/ApplicationModule', [
     ActivityEdit,
     DayView,
     WeekView,
-    MonthView
+    MonthView,
+    ActivityList
 ) {
 
     return declare('Mobile.BackCompat.ApplicationModule', [ApplicationModule], {
@@ -61,6 +64,8 @@ define('Mobile/BackCompat/ApplicationModule', [
             this.registerView(new DayView());
             this.registerView(new WeekView());
             this.registerView(new MonthView());
+
+            ActivityList.prototype.contractName = 'dynamic';
         },
 
         loadCustomizations: function() {
