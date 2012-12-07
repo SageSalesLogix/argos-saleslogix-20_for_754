@@ -75,7 +75,6 @@ define('Mobile/BackCompat/Views/Activity/Detail', [
             'ContactName',
             'Description',
             'Duration',
-            'Leader/$key',
             'LeadId',
             'LeadName',
             'LongNotes',
@@ -164,7 +163,7 @@ define('Mobile/BackCompat/Views/Activity/Detail', [
         processEntry: function(entry) {
             this.inherited(arguments);
 
-            if (entry && entry['Leader']) this.requestLeader(entry['Leader']['$key']);
+            if (entry && entry['UserId']) this.requestLeader(entry['UserId']);
         },
         createLayout: function() {
             return this.layout || (this.layout = [{
