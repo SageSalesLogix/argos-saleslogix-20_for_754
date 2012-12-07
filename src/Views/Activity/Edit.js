@@ -6,8 +6,7 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
     'Mobile/SalesLogix/Template',
     'Mobile/SalesLogix/Validator',
     'Sage/Platform/Mobile/Utility',
-    'Sage/Platform/Mobile/Edit',
-    'Mobile/SalesLogix/Recurrence'
+    'Sage/Platform/Mobile/Edit'
 ], function(
     declare,
     connect,
@@ -16,15 +15,13 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
     template,
     validator,
     utility,
-    Edit,
-    recur
+    Edit
 ) {
 
     return declare('Mobile.BackCompat.Views.Activity.Edit', [Edit], {
         //Localization
         activityCategoryTitleText: 'Activity Category',
         activityDescriptionTitleText: 'Activity Description',
-        locationText: 'location',
         activityTypeTitleText: 'Activity Type',
         alarmText: 'alarm',
         reminderText: '',
@@ -42,9 +39,6 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
         regardingText: 'regarding',
         rolloverText: 'auto rollover',
         startingText: 'start time',
-        repeatsText: 'repeats',
-        recurringText: 'recurring',
-        recurringTitleText: 'Recurring',
 		startingFormatText: 'M/d/yyyy h:mm tt',
         startingFormatTimelessText: 'M/d/yyyy',
         timelessText: 'timeless',
@@ -129,7 +123,6 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
             'Duration',
             'LeadId',
             'LeadName',
-            'Location',
             'LongNotes',
             'OpportunityId',
             'OpportunityName',
@@ -137,20 +130,13 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
             'Regarding',
             'Rollover',
             'StartDate',
-            'EndDate',
             'TicketId',
             'TicketNumber',
             'Timeless',
             'Type',
-            'UserId',
-            'Recurring',
-            'RecurrenceState',
-            'RecurPeriod',
-            'RecurPeriodSpec',
-            'RecurIterations'
+            'UserId'
         ],
         resourceKind: 'activities',
-        recurrence: {},
 
         init: function() {
             this.inherited(arguments);
@@ -165,9 +151,6 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
             this.connect(this.fields['Contact'], 'onChange', this.onAccountDependentChange);
             this.connect(this.fields['Opportunity'], 'onChange', this.onAccountDependentChange);
             this.connect(this.fields['Ticket'], 'onChange', this.onAccountDependentChange);
-            this.connect(this.fields['StartDate'], 'onChange', this.onStartDateChange);
-            this.connect(this.fields['RecurrenceUI'], 'onChange', this.onRecurrenceUIChange);
-            this.connect(this.fields['Recurrence'], 'onChange', this.onRecurrenceChange);
         },
         onUpdateSuccess: function(entry) {
             var view = App.getView(this.detailView),
@@ -201,9 +184,6 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
         },
         isActivityForLead: function(entry) {
             return entry && /^[\w]{12}$/.test(entry['LeadId']);
-        },
-        isActivityRecurring: function(entry) {
-            return /rstMaster/.test(this.fields['RecurrenceState'].getValue());
         },
         isInLeadContext: function() {
             var insert = this.options && this.options.insert,
@@ -352,73 +332,8 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
                 this.onAccountChange(accountField.getValue(), accountField);
             }
         },
-        onStartDateChange: function(value, field) {
-            this.recurrence.StartDate = value;
-            // Need recalculate RecurPeriodSpec in case weekday on StartDate changes
-            this.recurrence.RecurPeriodSpec = recur.getRecurPeriodSpec(
-                this.recurrence.RecurPeriod,
-                this.recurrence.StartDate,
-                this.recurrence.RecurPeriodSpec - this.recurrence.RecurPeriodSpec % 65536, // weekdays
-                this.recurrence.RecurPeriodSpec % 65536 // interval
-            );
-            this.resetRecurrence(this.recurrence);
-
-            recur.createSimplifiedOptions(value);
-
-            var repeats = ('rstMaster' == this.recurrence.RecurrenceState);
-            this.fields['RecurrenceUI'].setValue(recur.getPanel(repeats && this.recurrence.RecurPeriod));
-        },
-        onRecurrenceUIChange: function(value, field) {
-            var opt = recur.simplifiedOptions[field.currentSelection.$key];
-            // preserve #iterations (and EndDate) if matching recurrence
-            if (opt.RecurPeriodSpec == this.recurrence.RecurPeriodSpec)
-                opt.RecurIterations = this.recurrence.RecurIterations;
-
-            this.resetRecurrence(opt);
-        },
-        onRecurrenceChange: function(value, field) {
-            // did the StartDate change on the recurrence_edit screen?
-            var startDate = Sage.Platform.Mobile.Convert.toDateFromString(value['StartDate'])
-                currentDate = this.fields['StartDate'].getValue();
-            if (startDate.getDate() != currentDate.getDate() || startDate.getMonth() != currentDate.getMonth())
-                this.fields['StartDate'].setValue(startDate);
-
-            this.resetRecurrence(value);
-        },
-        resetRecurrence: function(o) {
-            this.recurrence.StartDate = this.fields['StartDate'].getValue();
-
-            this.recurrence.Recurring = o.Recurring;
-            this.recurrence.RecurrenceState = o.RecurrenceState;
-            this.recurrence.RecurPeriod = o.RecurPeriod;
-            this.recurrence.RecurPeriodSpec = o.RecurPeriodSpec;
-            this.recurrence.RecurIterations = o.RecurIterations;
-            this.recurrence.EndDate = recur.calcEndDate(this.recurrence.StartDate, this.recurrence);
-
-            this.fields['RecurrenceUI'].setValue(recur.getPanel(this.recurrence.RecurPeriod));
-            this.fields['Recurrence'].setValue(this.recurrence);
-
-            this.fields['Recurring'].setValue(this.recurrence.Recurring);
-            this.fields['RecurPeriod'].setValue(this.recurrence.RecurPeriod);
-            this.fields['RecurPeriodSpec'].setValue(this.recurrence.Recurring ? this.recurrence.RecurPeriodSpec : 0);
-            this.fields['RecurrenceState'].setValue(this.recurrence.RecurrenceState);
-            this.fields['RecurIterations'].setValue(this.recurrence.RecurIterations);
-            this.fields['EndDate'].setValue(this.recurrence.EndDate);
-
-            if (o.Recurring)
-                this.fields['Recurrence'].enable();
-            else
-                this.fields['Recurrence'].disable();
-
-        },
-
         formatPicklistForType: function(type, which) {
             return this.picklistsByType[type] && this.picklistsByType[type][which];
-        },
-        formatRecurrence: function(recurrence) {
-            if (typeof recurrence === 'string') return recurrence;
-
-            return recur.toString(recurrence, true);
         },
         applyUserActivityContext: function(context) {
             var view = App.getView(context.id);
@@ -448,7 +363,6 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
                 }
 
                 this.fields['StartDate'].setValue(startDate);
-                this.recurrence.StartDate = startDate;
             }
         },
         applyContext: function() {
@@ -659,13 +573,6 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
 
             if (allowSetAlarm)
                 this.enableFields(function(f) { return /^Alarm|Reminder$/.test(f.name) });
-
-            this.recurrence.StartDate = Sage.Platform.Mobile.Convert.toDateFromString(values.StartDate);
-            this.resetRecurrence(values);
-            this.onStartDateChange(this.fields['StartDate'].getValue(), this.fields['StartDate'])
-            if (this.isActivityRecurring)
-                this.fields['EndDate'].hide();
-
         },
         isDateTimeless: function(date) {
             if (!date) return false;
@@ -722,9 +629,6 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
 
             return {'$resources': list};
         },
-        createRecurringData: function() {
-            return recur.createSimplifiedOptions(this.fields['StartDate'].getValue());
-        },
         formatDependentQuery: function(dependentValue, format, property) {
             return string.substitute(format, [utility.getValue(dependentValue, property || '$key')]);
         },
@@ -744,11 +648,6 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
                 type: 'picklist',
                 maxTextLength: 64,
                 validator: validator.exceedsMaxTextLength
-            },{
-                name: 'Location',
-                property: 'Location',
-                label: this.locationText,
-                type: 'text'
             },{
                 label: this.priorityText,
                 name: 'Priority',
@@ -782,56 +681,6 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
                     validator.exists,
                     validator.isDateInRange
                 ]
-            },{
-                type: 'date',
-                name: 'EndDate',
-                property: 'EndDate',
-                include: this.isActivityRecurring
-            },{
-                dependsOn: 'StartDate',
-                label: this.repeatsText,
-                title: this.recurringTitleText,
-                name: 'RecurrenceUI',
-                property: 'RecurrenceUI',
-                type: 'select',
-                view: 'select_list',
-                data: this.createRecurringData.bindDelegate(this),
-                exclude: true
-            },{
-                dependsOn: 'RecurrenceUI',
-                label: this.recurringText,
-                name: 'Recurrence',
-                property: 'Recurrence',
-                type: 'recurrences',
-                applyTo: '.',
-                view: 'recurrence_edit',
-                exclude: true,
-                formatValue: this.formatRecurrence.bindDelegate(this)
-            },{
-                type: 'hidden',
-                name: 'RecurPeriod',
-                property: 'RecurPeriod',
-                include: this.isActivityRecurring
-            },{
-                type: 'hidden',
-                name: 'RecurPeriodSpec',
-                property: 'RecurPeriodSpec',
-                include: this.isActivityRecurring
-            },{
-                type: 'hidden',
-                name: 'RecurrenceState',
-                property: 'RecurrenceState',
-                include: this.isActivityRecurring
-            },{
-                type: 'hidden',
-                name: 'Recurring',
-                property: 'Recurring',
-                include: this.isActivityRecurring
-            },{
-                type: 'hidden',
-                name: 'RecurIterations',
-                property: 'RecurIterations',
-                include: this.isActivityRecurring
             },{
                 label: this.timelessText,
                 name: 'Timeless',
