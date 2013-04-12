@@ -18,25 +18,31 @@ define('Mobile/BackCompat/ApplicationModule', [
     'dojo/dom-class',
     'dojo/string',
     'dojo/query',
+    'dojo/_base/array',
+    'dijit/registry',
+    'dojo/aspect',
     'Sage/Platform/Mobile/Convert',
+    'Mobile/SalesLogix/Application',
     'Sage/Platform/Mobile/ApplicationModule',
-
     'Mobile/BackCompat/Views/Activity/Complete',
     'Mobile/BackCompat/Views/Activity/Detail',
     'Mobile/BackCompat/Views/Activity/Edit',
-
     'Mobile/BackCompat/Views/Calendar/DayView',
     'Mobile/BackCompat/Views/Calendar/WeekView',
     'Mobile/BackCompat/Views/Calendar/MonthView',
-
-    'Mobile/SalesLogix/Views/Activity/List'
+    'Mobile/SalesLogix/Views/Activity/List',
+    'Mobile/SalesLogix/Views/Home'
 ], function(
     declare,
     lang,
     domClass,
     string,
     query,
+    array,
+    registry,
+    aspect,
     convert,
+    Application,
     ApplicationModule,
     ActivityComplete,
     ActivityDetail,
@@ -44,19 +50,20 @@ define('Mobile/BackCompat/ApplicationModule', [
     DayView,
     WeekView,
     MonthView,
-    ActivityList
+    ActivityList,
+    HomeView
 ) {
 
     return declare('Mobile.BackCompat.ApplicationModule', [ApplicationModule], {
         loadViews: function() {
             this.inherited(arguments);
 
-            dijit.registry._hash['activity_complete'].destroyRecursive();
-            dijit.registry._hash['activity_detail'].destroyRecursive();
-            dijit.registry._hash['activity_edit'].destroyRecursive();
-            dijit.registry._hash['calendar_daylist'].destroyRecursive();
-            dijit.registry._hash['calendar_weeklist'].destroyRecursive();
-            dijit.registry._hash['calendar_monthlist'].destroyRecursive();
+            registry._hash['activity_complete'].destroyRecursive();
+            registry._hash['activity_detail'].destroyRecursive();
+            registry._hash['activity_edit'].destroyRecursive();
+            registry._hash['calendar_daylist'].destroyRecursive();
+            registry._hash['calendar_weeklist'].destroyRecursive();
+            registry._hash['calendar_monthlist'].destroyRecursive();
 
             this.registerView(new ActivityComplete());
             this.registerView(new ActivityDetail());
@@ -69,6 +76,47 @@ define('Mobile/BackCompat/ApplicationModule', [
         },
 
         loadCustomizations: function() {
+            this.inherited(arguments);
+            var original = Application.prototype.getDefaultViews,
+                nodes, widget, originalClear;
+            lang.extend(Application, {
+                getDefaultViews: function() {
+                    var views, index;
+                    views = original.apply(this, arguments) || [];
+                    // Remove "My Activities" view from default view list (not supported in 7.5.4)
+                    index = array.indexOf(views, 'myactivity_list');
+                    if (index > -1) {
+                        views.splice(index, 1);
+                    }
+
+                    return views;
+                }
+            });
+
+            // Remove "My Activites" from the list of views (not supported in 7.5.4)
+            if (window.App && window.App.views && window.App.views.myactivity_list) {
+                delete App.views.myactivity_list;
+            }
+
+            // Remove the speedsearch widget (speedsearch is not supported in 7.5.4)
+            nodes = query('#home > .search-widget.list-search');
+            if (nodes.length === 1) {
+                widget = registry.byNode(nodes[0]);
+                if (widget) {
+                    widget.destroyRecursive();
+                }
+
+                // Prevent the clear call on the speedsearch widget
+                originalClear = HomeView.prototype.clear;
+                lang.extend(HomeView, {
+                    searchWidget: null,
+                    clear: function() {
+                        this.searchWidget = null;
+                        originalClear.call(this, arguments);
+                    }
+                });
+            }
         }
     });
 });
+
