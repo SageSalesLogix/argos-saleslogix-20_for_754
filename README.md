@@ -52,7 +52,7 @@ To:
 <script type="text/javascript" src="content/javascript/argos-backcompat_20_for_754.js"></script>
 ```
 
-Lastly we need to add the modules configuration by editing the following lines:
+Lastly we need to add the application and modules configuration by editing the following lines:
 
 ```javascript
     (function() {
@@ -66,7 +66,7 @@ To:
 
 ```javascript
     (function() {
-        var application = 'Mobile/SalesLogix/Application',
+        var application = 'Mobile/BackCompat/Application',
             configuration = [
                 'configuration/production',
                 'configuration/backcompat/production'
