@@ -50,21 +50,21 @@
     <script type="text/javascript" src="../../argos-sdk/libraries/dojo/dojo/dojo.js" data-dojo-config="parseOnLoad:true, async:true"></script>
     <script type="text/javascript">
     require({
-			baseUrl: "./",
-			packages: [
-			{ name: 'dojo', location: '../../argos-sdk/libraries/dojo/dojo' },
-			{ name: 'dijit', location: '../../argos-sdk/libraries/dojo/dijit' },
-			{ name: 'Sage/Platform/Mobile', location: '../../argos-sdk/src' },
-			{ name: 'Mobile/SalesLogix', location: 'src' },
-			{ name: 'Mobile/BackCompat', location: '../argos-saleslogix-20_for_754/src' },
+        baseUrl: "./",
+        packages: [
+            { name: 'dojo', location: '../../argos-sdk/libraries/dojo/dojo' },
+            { name: 'dijit', location: '../../argos-sdk/libraries/dojo/dijit' },
+            { name: 'Sage/Platform/Mobile', location: '../../argos-sdk/src' },
+            { name: 'Mobile/SalesLogix', location: 'src' },
+            { name: 'Mobile/BackCompat', location: '../argos-saleslogix-20_for_754/src' },
             { name: 'configuration/backcompat', location: '../argos-saleslogix-20_for_754/configuration' }
-			]
+        ]
      });
     </script>
 
     <script type="text/javascript">
     (function() {
-        var application = 'Mobile/SalesLogix/Application',
+        var application = 'Mobile/BackCompat/Application',
             configuration = [
                 'configuration/backcompat/development'
             ];
@@ -87,3 +87,4 @@
 <body>
 </body>
 </html>
+
