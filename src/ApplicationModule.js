@@ -79,7 +79,7 @@ define('Mobile/BackCompat/ApplicationModule', [
             this.inherited(arguments);
             var originalGetDefaultViews = Application.prototype.getDefaultViews,
                 originalNavigateToInitialView = Application.prototype.navigateToInitialView,
-                nodes, widget, originalClear;
+                nodes, widget, originalClear, attachmentRelatedViews;
             lang.extend(Application, {
                 getDefaultViews: function() {
                     var views, removeView;
@@ -114,6 +114,23 @@ define('Mobile/BackCompat/ApplicationModule', [
                 delete App.views.speedsearch_list;
                 delete App.views.myattachment_list;
             }
+
+            attachmentRelatedViews = [
+                'account_detail',
+                'activity_detail',
+                'contact_detail',
+                'history_detail',
+                'lead_detail',
+                'opportunity_detail',
+                'ticket_detail'
+            ];
+
+            array.forEach(attachmentRelatedViews, function (view) {
+                this.registerCustomization('detail', view, {
+                    at: function(row) { return row.name === 'AttachmentRelated'; },
+                    type: 'remove'
+                });
+            }, this);
         }
     });
 });
