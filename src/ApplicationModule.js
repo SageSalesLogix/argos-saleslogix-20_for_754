@@ -77,44 +77,42 @@ define('Mobile/BackCompat/ApplicationModule', [
 
         loadCustomizations: function() {
             this.inherited(arguments);
-            var original = Application.prototype.getDefaultViews,
+            var originalGetDefaultViews = Application.prototype.getDefaultViews,
+                originalNavigateToInitialView = Application.prototype.navigateToInitialView,
                 nodes, widget, originalClear;
             lang.extend(Application, {
                 getDefaultViews: function() {
-                    var views, index;
-                    views = original.apply(this, arguments) || [];
-                    // Remove "My Activities" view from default view list (not supported in 7.5.4)
-                    index = array.indexOf(views, 'myactivity_list');
-                    if (index > -1) {
-                        views.splice(index, 1);
-                    }
+                    var views, removeView;
+                    removeView = function(views, viewId) {
+                        var index;
+                        index = array.indexOf(views, viewId);
+                        if (index > -1) {
+                            views.splice(index, 1);
+                        }
+                    };
 
+                    views = originalGetDefaultViews.apply(this, arguments) || [];
+
+                    // Remove views not supported in 7.5.4
+                    removeView(views, 'myactivity_list');
+                    removeView(views, 'speedsearch_list');
+                    removeView(views, 'myattachment_list');
                     return views;
+                },
+                navigateToInitialView: function() {
+                    originalNavigateToInitialView.apply(this, arguments);
+                    var view = this.getView('account_list');
+                    if (view) {
+                        view.show();
+                    }
                 }
             });
 
-            // Remove "My Activites" from the list of views (not supported in 7.5.4)
-            if (window.App && window.App.views && window.App.views.myactivity_list) {
+            if (window.App && window.App.views) {
+                // Remove lists registered that are not supported
                 delete App.views.myactivity_list;
-            }
-
-            // Remove the speedsearch widget (speedsearch is not supported in 7.5.4)
-            nodes = query('#home > .search-widget.list-search');
-            if (nodes.length === 1) {
-                widget = registry.byNode(nodes[0]);
-                if (widget) {
-                    widget.destroyRecursive();
-                }
-
-                // Prevent the clear call on the speedsearch widget
-                originalClear = HomeView.prototype.clear;
-                lang.extend(HomeView, {
-                    searchWidget: null,
-                    clear: function() {
-                        this.searchWidget = null;
-                        originalClear.call(this, arguments);
-                    }
-                });
+                delete App.views.speedsearch_list;
+                delete App.views.myattachment_list;
             }
         }
     });
