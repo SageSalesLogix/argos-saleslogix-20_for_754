@@ -6,7 +6,8 @@ define('Mobile/BackCompat/Views/Activity/Detail', [
     'Mobile/SalesLogix/Template',
     'Mobile/SalesLogix/Format',
     'Sage/Platform/Mobile/Convert',
-    'Sage/Platform/Mobile/Detail'
+    'Sage/Platform/Mobile/Detail',
+    'moment'
 ], function(
     declare,
     string,
@@ -15,7 +16,8 @@ define('Mobile/BackCompat/Views/Activity/Detail', [
     template,
     format,
     convert,
-    Detail
+    Detail,
+    moment
 ) {
 
     return declare('Mobile.BackCompat.Views.Activity.Detail', [Detail], {
@@ -55,9 +57,9 @@ define('Mobile/BackCompat/Views/Activity/Detail', [
         ticketNumberText: 'ticket',
         whenText: 'When',
         whoText: 'Who',
-        startDateFormatText: 'M/d/yyyy h:mm:ss tt',
-        timelessDateFormatText: 'M/d/yyyy',
-        alarmDateFormatText: 'M/d/yyyy h:mm:ss tt',
+        startDateFormatText: 'M/D/YYYY h:mm:ss A',
+        timelessDateFormatText: 'M/D/YYYY',
+        alarmDateFormatText: 'M/D/YYYY h:mm:ss A',
 
         //View Properties
         id: 'activity_detail',

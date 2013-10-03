@@ -6,7 +6,8 @@ define('Mobile/BackCompat/Views/Activity/Complete', [
     'Mobile/SalesLogix/Validator',
     'Mobile/SalesLogix/Template',
     'Sage/Platform/Mobile/Utility',
-    'Sage/Platform/Mobile/Edit'
+    'Sage/Platform/Mobile/Edit',
+    'moment'
 ], function(
     declare,
     array,
@@ -15,7 +16,8 @@ define('Mobile/BackCompat/Views/Activity/Complete', [
     validator,
     template,
     utility,
-    Edit
+    Edit,
+    moment
 ) {
 
     return declare('Mobile.BackCompat.Views.Activity.Complete', [Edit], {
@@ -31,10 +33,10 @@ define('Mobile/BackCompat/Views/Activity/Complete', [
         categoryText: 'category',
         categoryTitleText: 'Activity Category',
         completedText: 'completed date',
-		completedFormatText: 'M/d/yyyy h:mm tt',
+        completedFormatText: 'M/D/YYYY h:mm A',
         completionText: 'Completion',
         durationText: 'duration',
-		durationInvalidText: "The field '${2}' must have a value.",
+        durationInvalidText: "The field '${2}' must have a value.",
         carryOverNotesText: 'carry over notes',
         followUpText: 'follow-up',
         followUpTitleText: 'Follow-up type',
@@ -49,7 +51,7 @@ define('Mobile/BackCompat/Views/Activity/Complete', [
         resultText: 'result',
         resultTitleText: 'Result',
         startingText: 'start date',
-		startingFormatText: 'M/d/yyyy h:mm tt',
+        startingFormatText: 'M/D/YYYY h:mm A',
         timelessText: 'timeless',
         durationValueText: {
             0: 'none',

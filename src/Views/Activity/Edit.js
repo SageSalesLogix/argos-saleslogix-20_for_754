@@ -6,7 +6,8 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
     'Mobile/SalesLogix/Template',
     'Mobile/SalesLogix/Validator',
     'Sage/Platform/Mobile/Utility',
-    'Sage/Platform/Mobile/Edit'
+    'Sage/Platform/Mobile/Edit',
+    'moment'
 ], function(
     declare,
     connect,
@@ -15,7 +16,8 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
     template,
     validator,
     utility,
-    Edit
+    Edit,
+    moment
 ) {
 
     return declare('Mobile.BackCompat.Views.Activity.Edit', [Edit], {
@@ -28,8 +30,8 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
         categoryText: 'category',
         durationText: 'duration',
         durationTitleText: 'Duration',
-		durationInvalidText: "The field '${2}' must have a value.",
-		reminderInvalidText: "The field 'reminder' must have a value.",
+        durationInvalidText: "The field '${2}' must have a value.",
+        reminderInvalidText: "The field 'reminder' must have a value.",
         reminderTitleText: 'Reminder',
         leaderText: 'leader',
         longNotesText: 'notes',
@@ -39,8 +41,8 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
         regardingText: 'regarding',
         rolloverText: 'auto rollover',
         startingText: 'start time',
-		startingFormatText: 'M/d/yyyy h:mm tt',
-        startingFormatTimelessText: 'M/d/yyyy',
+        startingFormatText: 'M/D/YYYY h:mm A',
+        startingFormatTimelessText: 'M/D/YYYY',
         timelessText: 'timeless',
         titleText: 'Activity',
         typeText: 'type',
@@ -262,7 +264,7 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
                 startDateField['showTimePicker'] = false;
                 startDateField['timeless'] = true;
                 if (!this.isDateTimeless(startDate))
-                    startDate = startDate.clone().clearTime().add({minutes:-1*startDate.getTimezoneOffset(), seconds:5});
+                    startDate = moment(startDate).startOf('day').add({minutes:-1*startDate.getTimezoneOffset(), seconds:5}).toDate();
                 startDateField.setValue(startDate);
             }
             else
@@ -273,7 +275,7 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
                 startDateField['showTimePicker'] = true;
                 startDateField['timeless'] = false;
                 if (this.isDateTimeless(startDate))
-                    startDate = startDate.clone().add({minutes:startDate.getTimezoneOffset()+1, seconds: -5});
+                    startDate = moment(startDate).add({minutes:startDate.getTimezoneOffset()+1, seconds: -5}).toDate();
                 startDateField.setValue(startDate);
             }
         },
@@ -339,56 +341,49 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
             var view = App.getView(context.id);
             if (view && view.currentDate)
             {
-                var currentDate = view.currentDate.clone().clearTime(),
+                var currentDate = moment(view.currentDate).startOf('day'),
                     userOptions = App.context['userOptions'],
                     startTimeOption = userOptions && userOptions['Calendar:DayStartTime'],
-                    startTime = startTimeOption && Date.parse(startTimeOption),
+                    startTime = startTimeOption && moment(startTimeOption, 'h:mma'),
                     startDate;
 
-                if (startTime && (currentDate.compareTo(Date.today()) !== 0))
+                if (startTime && (currentDate.valueOf() == moment().startOf('day').valueOf()))
                 {
-                    startDate = currentDate.clone().set({
-                        'hour': startTime.getHours(),
-                        'minute': startTime.getMinutes()
-                    });
+                    startDate = currentDate.clone()
+                        .hours(startTime.hours())
+                        .minutes(startTime.minutes());
                 }
                 else
                 {
-                    startTime = Date.now();
-                    startDate = currentDate.clone().clearTime().set({
-                        'hour': startTime.getHours()
-                    }).add({
-                        'minute': (Math.floor(startTime.getMinutes() / 15) * 15) + 15
-                    });
+                    startTime = moment();
+                    startDate = currentDate.startOf('day').hours(startTime.hours())
+                        .add({'minutes': (Math.floor(startTime.minutes() / 15) * 15) + 15});
                 }
 
-                this.fields['StartDate'].setValue(startDate);
+                this.fields['StartDate'].setValue(startDate.toDate());
             }
         },
         applyContext: function() {
             this.inherited(arguments);
 
-            var startTime = Date.now(),
-                startDate = Date.now().clearTime().set({
-                    'hour': startTime.getHours()
-                }).add({
-                    'minute': (Math.floor(startTime.getMinutes() / 15) * 15) + 15
+            var startTime = moment(),
+                startDate = moment().startOf('day').hours(startTime.hours()).add({
+                    'minutes': (Math.floor(startTime.minutes() / 15) * 15) + 15
                 }),
                 activityType = this.options && this.options.activityType,
                 activityGroup = this.groupOptionsByType[activityType] || '',
-                activityDuration = App.context.userOptions && App.context.userOptions[activityGroup+':Duration'] || 15,
-                alarmEnabled = App.context.userOptions && App.context.userOptions[activityGroup+':AlarmEnabled'] || true,
-                alarmDuration = App.context.userOptions && App.context.userOptions[activityGroup+':AlarmLead'] || 15;
+                activityDuration = App.context.userOptions && App.context.userOptions[activityGroup + ':Duration'] || 15,
+                alarmEnabled = App.context.userOptions && App.context.userOptions[activityGroup + ':AlarmEnabled'] || true,
+                alarmDuration = App.context.userOptions && App.context.userOptions[activityGroup + ':AlarmLead'] || 15;
 
-            this.fields['StartDate'].setValue(startDate);
+            this.fields['StartDate'].setValue(startDate.toDate());
             this.fields['Type'].setValue(activityType);
             this.fields['Duration'].setValue(activityDuration);
             this.fields['Alarm'].setValue(alarmEnabled);
             this.fields['Reminder'].setValue(alarmDuration);
 
             var user = App.context['user'];
-            if (user)
-            {    
+            if (user) {
                 this.fields['UserId'].setValue(user['$key']);
 
                 var leaderField = this.fields['Leader'];
@@ -399,17 +394,24 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
             var found = App.queryNavigationContext(function(o) {
                 var context = (o.options && o.options.source) || o;
 
-                if (/^(accounts|contacts|opportunities|tickets|leads)$/.test(context.resourceKind) && context.key)
+                if (/^(accounts|contacts|opportunities|tickets|leads)$/.test(context.resourceKind) && context.key) {
                     return true;
+                }
 
-                if (/^(useractivities)$/.test(context.resourceKind))
+                if (/^(useractivities)$/.test(context.resourceKind)) {
                     return true;
+                }
 
-                if (/^(activities)$/.test(context.resourceKind) && context.options['currentDate'])
+                if (/^(activities)$/.test(context.resourceKind) && context.options['currentDate']) {
                     return true;
+                }
 
                 return false;
             });
+
+            var accountField = this.fields['Account'];
+            this.onAccountChange(accountField.getValue(), accountField);
+
             var context = (found && found.options && found.options.source) || found,
                 lookup = {
                     'accounts': this.applyAccountContext,
@@ -421,10 +423,9 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
                     'activities': this.applyUserActivityContext
                 };
 
-            if (context && lookup[context.resourceKind]) lookup[context.resourceKind].call(this, context);
-
-            var accountField = this.fields['Account'];
-            this.onAccountChange(accountField.getValue(), accountField);
+            if (context && lookup[context.resourceKind]) {
+                lookup[context.resourceKind].call(this, context);
+            }
         },
         applyAccountContext: function(context) {
             var view = App.getView(context.id),
@@ -575,10 +576,18 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
                 this.enableFields(function(f) { return /^Alarm|Reminder$/.test(f.name) });
         },
         isDateTimeless: function(date) {
-            if (!date) return false;
-            if (date.getUTCHours() != 0) return false;
-            if (date.getUTCMinutes() != 0) return false;
-            if (date.getUTCSeconds() != 5) return false;
+            if (!date) {
+                return false;
+            }
+            if (date.getUTCHours() !== 0) {
+                return false;
+            }
+            if (date.getUTCMinutes() !== 0) {
+                return false;
+            }
+            if (date.getUTCSeconds() !== 5) {
+                return false;
+            }
 
             return true;
         },
@@ -591,14 +600,13 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
                 timeless = this.fields['Timeless'].getValue();
 
             // if StartDate is dirty, always update AlarmTime
-            if (startDate && (isStartDateDirty || isReminderDirty))
-            {
+            if (startDate && (isStartDateDirty || isReminderDirty)) {
                 values = values || {};
-                values['AlarmTime'] = startDate.clone().add({'minutes': -1 * reminderIn});
+                values['AlarmTime'] = moment(startDate).clone().add({'minutes': -1 * reminderIn}).toDate();
 
                 // if timeless, convert back to local time
                 if (timeless)
-                    values['AlarmTime'].add({'minutes': startDate.getTimezoneOffset()});
+                    values['AlarmTime'] = moment(values['AlarmTime']).add({'minutes': startDate.getTimezoneOffset()}).toDate();
             }
 
             return values;
