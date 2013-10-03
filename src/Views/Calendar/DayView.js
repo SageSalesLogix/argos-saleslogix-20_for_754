@@ -5,7 +5,8 @@ define('Mobile/BackCompat/Views/Calendar/DayView', [
     'dojo/dom-class',
     'Sage/Platform/Mobile/ErrorManager',
     'Sage/Platform/Mobile/Convert',
-    'Sage/Platform/Mobile/List'
+    'Sage/Platform/Mobile/List',
+    'moment'
 ], function(
     declare,
     string,
@@ -13,13 +14,14 @@ define('Mobile/BackCompat/Views/Calendar/DayView', [
     domClass,
     ErrorManager,
     convert,
-    List
+    List,
+    moment
 ) {
 
     return declare('Mobile.BackCompat.Views.Calendar.DayView', [List], {
         // Localization
         titleText: 'Calendar',
-        dateHeaderFormatText: 'dddd, MM/dd/yyyy',
+        dateHeaderFormatText: 'dddd, MM/DD/YYYY',
         startTimeFormatText: 'h:mm',
         todayText: 'Today',
         dayText: 'Day',
@@ -35,7 +37,6 @@ define('Mobile/BackCompat/Views/Calendar/DayView', [
         widgetTemplate: new Simplate([
             '<div id="{%= $.id %}" title="{%= $.titleText %}" class="list {%= $.cls %}" {% if ($.resourceKind) { %}data-resource-kind="{%= $.resourceKind %}"{% } %}>',
             '<div data-dojo-attach-point="searchNode"></div>',
-            '<a href="#" class="android-6059-fix">fix for android issue #6059</a>',
             '{%! $.navigationTemplate %}',
             '<div style="clear:both"></div>',
             '<div class="event-content event-hidden" data-dojo-attach-point="eventContainerNode">',
@@ -179,7 +180,7 @@ define('Mobile/BackCompat/Views/Calendar/DayView', [
         },
         init: function() {
             this.inherited(arguments);
-            this.currentDate = Date.today().clearTime();
+            this.currentDate = moment().startOf('day').toDate();
         },
         toggleGroup: function(params) {
             var node = params.$source;
@@ -195,7 +196,7 @@ define('Mobile/BackCompat/Views/Calendar/DayView', [
             this.options['where'] = this.formatQueryForActivities();
             this.feed = null;
             this.eventFeed = null;
-            this.set('dateContent', this.currentDate.toString(this.dateHeaderFormatText));
+            this.set('dateContent', moment(this.currentDate).format(this.dateHeaderFormatText));
 
             this.requestData();
             this.requestEventData();
@@ -332,13 +333,13 @@ define('Mobile/BackCompat/Views/Calendar/DayView', [
             options = options || {};
             options['where'] = this.formatQueryForActivities();
 
-            this.set('dateContent', this.currentDate.toString(this.dateHeaderFormatText));
+            this.set('dateContent', moment(this.currentDate).format(this.dateHeaderFormatText));
             this.inherited(arguments, [options]);
         },
         processShowOptions: function(options) {
             if (options.currentDate)
             {
-                this.currentDate = Date.parseExact(options.currentDate,'yyyy-MM-dd').clearTime() || Date.today().clearTime();
+                this.currentDate = moment(options.currentDate).startOf('day').toDate() || moment().startOf('day').toDate();
                 this.refreshRequired = true;
             }
         },
@@ -348,20 +349,19 @@ define('Mobile/BackCompat/Views/Calendar/DayView', [
         getNextDay: function() {
             if (this.isLoading()) return;
             
-            this.currentDate.add({day: 1});
+            this.currentDate = moment(this.currentDate).add({days: 1}).toDate();
             this.refresh();
         },
         getToday: function() {
             if (this.isLoading()) return;
-            if (this.currentDate.equals(Date.today())) return;
 
-            this.currentDate = Date.today().clearTime();
+            this.currentDate = moment().startOf('day').toDate();
             this.refresh();
         },
         getPrevDay: function() {
             if (this.isLoading()) return;
 
-            this.currentDate.add({day: -1});
+            this.currentDate = moment(this.currentDate).add({days: -1}).toDate();
             this.refresh();
         },
         formatQueryForActivities: function() {
@@ -375,9 +375,9 @@ define('Mobile/BackCompat/Views/Calendar/DayView', [
                 queryWhere,
                 [App.context['user'] && App.context['user']['$key'],
                 convert.toIsoStringFromDate(this.currentDate),
-                convert.toIsoStringFromDate(this.currentDate.clone().add({day: 1, second: -1})),
-                this.currentDate.toString('yyyy-MM-ddT00:00:00Z'),
-                this.currentDate.toString('yyyy-MM-ddT23:59:59Z')]
+                convert.toIsoStringFromDate(moment(this.currentDate).add({days: 1, seconds: -1}).toDate()),
+                moment(this.currentDate).format('YYYY-MM-DDT00:00:00[Z]'),
+                moment(this.currentDate).format('YYYY-MM-DDT23:59:59[Z]')]
             );
         },
         selectEntry: function(params) {
@@ -410,18 +410,18 @@ define('Mobile/BackCompat/Views/Calendar/DayView', [
         },
         selectDateSuccess: function() {
             var view = App.getPrimaryActiveView();
-            this.currentDate = view.getDateTime().clearTime();
+            this.currentDate = moment(view.getDateTime()).startOf('day').toDate();
             this.refresh();
             ReUI.back();
         },
         navigateToWeekView: function() {
             var view = App.getView(this.weekView),
-                options = {currentDate: this.currentDate.toString('yyyy-MM-dd') || Date.today()};
+                options = {currentDate: moment(this.currentDate).format('YYYY-MM-DD') || Date.today()};
             view.show(options);
         },
         navigateToMonthView: function() {
             var view = App.getView(this.monthView),
-                options = {currentDate: this.currentDate.toString('yyyy-MM-dd') || Date.today()};
+                options = {currentDate: moment(this.currentDate).format('YYYY-MM-DD') || Date.today()};
             view.show(options);
         },
         navigateToInsertView: function(el) {
