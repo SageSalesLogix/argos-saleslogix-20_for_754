@@ -22,7 +22,7 @@ define('Mobile/BackCompat/Views/Calendar/DayView', [
         // Localization
         titleText: 'Calendar',
         dateHeaderFormatText: 'dddd, MM/DD/YYYY',
-        startTimeFormatText: 'h:mm',
+        startTimeFormatText: 'h:mm A',
         todayText: 'Today',
         dayText: 'Day',
         weekText: 'Week',
@@ -71,7 +71,6 @@ define('Mobile/BackCompat/Views/Calendar/DayView', [
                 '<span class="p-time">{%= $$.allDayText %}</span>',
             '{% } else { %}',
                 '<span class="p-time">{%: Mobile.SalesLogix.Format.date($.Activity.StartDate, $$.startTimeFormatText) %}</span>',
-                '<span class="p-meridiem">{%: Mobile.SalesLogix.Format.date($.Activity.StartDate, "tt") %}</span>',
             '{% } %}'
         ]),
         itemTemplate: new Simplate([

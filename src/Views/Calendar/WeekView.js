@@ -6,7 +6,8 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
     'Sage/Platform/Mobile/ErrorManager',
     'Sage/Platform/Mobile/Convert',
     'Sage/Platform/Mobile/List',
-    'Mobile/SalesLogix/Format'
+    'Mobile/SalesLogix/Format',
+    'moment'
 ], function(
     declare,
     query,
@@ -14,16 +15,18 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
     domClass,
     ErrorManager,
     convert,
-    List
+    List,
+    format,
+    moment
 ) {
 
     return declare('Mobile.BackCompat.Views.Calendar.WeekView', [List], {
         //Localization
         titleText: 'Calendar',
-        weekTitleFormatText: 'MMM d, yyyy',
+        weekTitleFormatText: 'MMM D, YYYY',
         dayHeaderLeftFormatText: 'dddd',
-        dayHeaderRightFormatText: 'MMM d, yyyy',
-        startTimeFormatText: 'h:mm',
+        dayHeaderRightFormatText: 'MMM D, YYYY',
+        startTimeFormatText: 'h:mm A',
         todayText: 'Today',
         dayText: 'Day',
         weekText: 'Week',
@@ -37,7 +40,6 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
         widgetTemplate: new Simplate([
             '<div id="{%= $.id %}" title="{%= $.titleText %}" class="{%= $.cls %}" {% if ($.resourceKind) { %}data-resource-kind="{%= $.resourceKind %}"{% } %}>',
             '<div data-dojo-attach-point="searchNode"></div>',
-            '<a href="#" class="android-6059-fix">fix for android issue #6059</a>',
             '{%! $.navigationTemplate %}',
             '<div style="clear:both"></div>',
             '<div class="event-content event-hidden" data-dojo-attach-point="eventContainerNode">',
@@ -64,9 +66,9 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
             '</div>'
         ]),
         groupTemplate: new Simplate([
-            '<h2 data-action="activateDayHeader" class="dayHeader {%= $.Activity.headerClass %}" data-date="{%: $.Activity.StartDate.toString(\'yyyy-MM-dd\') %}">',
-                '<span class="dayHeaderLeft">{%: $.Activity.StartDate.toString($$.dayHeaderLeftFormatText) %}</span>',
-                '<span class="dayHeaderRight">{%: $.Activity.StartDate.toString($$.dayHeaderRightFormatText) %}</span>',
+            '<h2 data-action="activateDayHeader" class="dayHeader {%= $.Activity.headerClass %}" data-date="{%: moment($.Activity.StartDate).format(\'YYYY-MM-DD\') %}">',
+                '<span class="dayHeaderLeft">{%: moment($.Activity.StartDate).format($$.dayHeaderLeftFormatText) %}</span>',
+                '<span class="dayHeaderRight">{%: moment($.Activity.StartDate).format($$.dayHeaderRightFormatText) %}</span>',
                 '<div style="clear:both"></div>',
             '</h2>',
             '<ul class="list-content">'
@@ -96,7 +98,6 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
                 '<span class="p-time">{%= $$.allDayText %}</span>',
             '{% } else { %}',
                 '<span class="p-time">{%: Mobile.SalesLogix.Format.date($.Activity.StartDate, $$.startTimeFormatText) %}</span>',
-                '<span class="p-meridiem">{%: Mobile.SalesLogix.Format.date($.Activity.StartDate, "tt") %}</span>',
             '{% } %}'
         ]),
         itemTemplate: new Simplate([
@@ -209,8 +210,8 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
         },
         init: function() {
             this.inherited(arguments);
-            this.todayDate = Date.today().clearTime();
-            this.currentDate = this.todayDate.clone();
+            this.todayDate = moment().startOf('day').toDate();
+            this.currentDate = moment(this.todayDate).toDate();
         },
         toggleGroup: function(params) {
             var node = query(params.$source);
@@ -220,32 +221,28 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
             }
         },
         activateDayHeader: function(params) {
-            this.currentDate = Date.parseExact(params.date, 'yyyy-MM-dd');
+            this.currentDate = moment(params.date, 'YYYY-MM-DD').toDate();
             this.navigateToDayView();
         },
         getThisWeekActivities: function() {
             if (!this.isInCurrentWeek(this.todayDate))
             {
-                this.currentDate = this.todayDate.clone();
+                this.currentDate = moment(this.todayDate).toDate();
                 this.refresh();
             }
         },
         getStartDay: function(date) {
-            return (date.getDay() === this.userWeekStartDay)
-                    ? date.clone().clearTime()
-                    : date.clone().moveToDayOfWeek(this.userWeekStartDay, -1).clearTime();
+            return moment(date).startOf('week').toDate();
         },
         getEndDay: function(date) {
-            return (date.getDay() === this.userWeekEndDay)
-                    ? date.clone().set({hour:23,minute:59,second:59})
-                    : date.clone().moveToDayOfWeek(this.userWeekEndDay, 1).set({hour:23,minute:59,second:59});
+            return moment(date).endOf('week').toDate();
         },
         getNextWeekActivities: function() {
-            this.currentDate = this.getStartDay(this.weekEndDate.clone().addDays(1));
+            this.currentDate = this.getStartDay(moment(this.weekEndDate).add({days:1}).toDate());
             this.refresh();
         },
         getPrevWeekActivities: function() {
-            this.currentDate = this.getStartDay(this.weekStartDate.clone().addDays(-1));
+            this.currentDate = this.getStartDay(moment(this.weekStartDate).subtract({days:1}).toDate());
             this.refresh();
         },
         getTypeIcon: function(type) {
@@ -264,8 +261,8 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
                     App.context['user'] && App.context['user']['$key'],
                     convert.toIsoStringFromDate(this.weekStartDate),
                     convert.toIsoStringFromDate(this.weekEndDate),
-                    this.weekStartDate.toString('yyyy-MM-ddT00:00:00Z'),
-                    this.weekEndDate.toString('yyyy-MM-ddT23:59:59Z')]
+                    moment(this.weekStartDate).format('YYYY-MM-DDT00:00:00[Z]'),
+                    moment(this.weekEndDate).format('YYYY-MM-DDT23:59:59[Z]')]
                 );
         },
         setWeekTitle: function() {
@@ -273,18 +270,13 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
                 end = this.getEndDay(this.currentDate);
 
             this.set('dateContent', string.substitute('${0}-${1}',[
-                start.toString(this.weekTitleFormatText),
-                end.toString(this.weekTitleFormatText)
+                moment(start).format(this.weekTitleFormatText),
+                moment(end).format(this.weekTitleFormatText)
                 ]));
         },
-        setWeekStartDay: function() {
-            this.userWeekStartDay = (this.options && this.options['startDay'])
-                            ? this.options['startDay']
-                            : this.userWeekStartDay;
-            this.userWeekEndDay = this.getStartDay(new Date()).addDays(6).getDay();
-        },
         isInCurrentWeek: function(date) {
-            return date.between(this.weekStartDate, this.weekEndDate);
+            date = moment(date);
+            return (date.valueOf() > this.weekStartDate.valueOf() && date.valueOf() < this.weekEndDate.valueOf());
         },
         processFeed: function(feed) {
             this.feed = feed;
@@ -302,11 +294,11 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
                     currentGroup,
                     entryOrder = [],
                     entryOrderLength,
-                    dateCompareString = 'yyyy-MM-dd',
+                    dateCompareString = 'YYYY-MM-DD',
                     o = [];
 
-                if (todayNode && !entryGroups[this.todayDate.toString(dateCompareString)])
-                    entryGroups[this.todayDate.toString(dateCompareString)] = [todayNode];
+                if (todayNode && !entryGroups[moment(this.todayDate).format(dateCompareString)])
+                    entryGroups[moment(this.todayDate).format(dateCompareString)] = [todayNode];
 
                 for (var i = 0; i < feed['$resources'].length; i++)
                 {
@@ -320,7 +312,7 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
                     currentEntry.isEvent = false;
                     this.entries[currentEntry.Activity.$key] = currentEntry;
 
-                    currentGroup = entryGroups[currentEntry.Activity.StartDate.toString(dateCompareString)];
+                    currentGroup = entryGroups[moment(currentEntry.Activity.StartDate).format(dateCompareString)];
                     if (currentGroup)
                     {
                         if (currentEntry.Activity.Timeless)
@@ -336,22 +328,27 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
                     currentGroup = [];
                     currentGroup.push(this.groupTemplate.apply(currentEntry, this));
                     currentGroup.push(this.rowTemplate.apply(currentEntry, this));
-                    entryGroups[currentEntry.Activity.StartDate.toString(dateCompareString)] = currentGroup;
+                    entryGroups[moment(currentEntry.Activity.StartDate).format(dateCompareString)] = currentGroup;
                 }
 
-                for (var entryGroup in entryGroups )
-                {
-                    entryOrder.push(Date.parseExact(entryGroup, dateCompareString));
+                for (var entryGroup in entryGroups) {
+                    entryOrder.push(moment(entryGroup, dateCompareString));
                 }
 
                 entryOrder.sort(function(a, b) {
-                    return a.compareTo(b);
+                    if (a.valueOf() < b.valueOf()) {
+                        return 1;
+                    } else if (a.valueOf() > b.valueOf()) {
+                        return -1;
+                    }
+
+                    return 0;
                 });
 
                 entryOrderLength = entryOrder.length;
                 for (var i = 0; i < entryOrderLength; i++)
                 {
-                    o.push(entryGroups[entryOrder[i].toString(dateCompareString)].join('') + this.groupEndTemplate.apply(this));
+                    o.push(entryGroups[entryOrder[i].format(dateCompareString)].join('') + this.groupEndTemplate.apply(this));
                 }
 
                 if (o.length > 0)
@@ -363,10 +360,7 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
                     this.feed['$totalResults'] - (this.feed['$startIndex'] + this.feed['$itemsPerPage'] - 1)
                 ]));
 
-            if (this.hasMoreData())
-                domClass.add(this.domNode, 'list-has-more');
-            else
-                domClass.remove(this.domNode, 'list-has-more');
+            domClass.toggle(this.domNode, 'list-has-more', this.hasMoreData());
         },
         addTodayDom: function() {
             if (!this.isInCurrentWeek(this.todayDate)) return null;
@@ -431,8 +425,8 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
                         ')'
                     ].join(''),
                     [App.context['user'] && App.context['user']['$key'],
-                    startDate.toString('yyyy-MM-ddT00:00:00Z'),
-                    endDate.toString('yyyy-MM-ddT23:59:59Z')]
+                    moment(startDate).format('YYYY-MM-DDT00:00:00[Z]'),
+                    moment(endDate).format('YYYY-MM-DDT23:59:59[Z]')]
                 );
         },
         hideEventList: function() {
@@ -480,8 +474,7 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
         },
         refresh: function() {
             var startDate = this.currentDate;
-            this.setWeekStartDay();
-            this.currentDate = startDate.clone();
+            this.currentDate = moment(startDate).toDate();
             this.weekStartDate = this.getStartDay(startDate);
             this.weekEndDate = this.getEndDay(startDate);
             this.setWeekTitle();
@@ -499,9 +492,8 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
             this.inherited(arguments);
         },
         processShowOptions: function(options) {
-            if (options.currentDate)
-            {
-                this.currentDate = Date.parseExact(options.currentDate,'yyyy-MM-dd').clearTime() || Date.today().clearTime();
+            if (options.currentDate) {
+                this.currentDate = moment(options.currentDate).startOf('day').toDate() || moment().startOf('day').toDate();
                 this.refreshRequired = true;
             }
         },
@@ -563,12 +555,12 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
         },
         navigateToDayView: function() {
             var view = App.getView(this.activityListView),
-                options = {currentDate: this.currentDate.toString('yyyy-MM-dd') || Date.today()};
+                options = {currentDate: moment(this.currentDate).format('YYYY-MM-DD') || Date.today()};
             view.show(options);
         },
         navigateToMonthView: function() {
             var view = App.getView(this.monthView),
-                options = {currentDate: this.currentDate.toString('yyyy-MM-dd') || Date.today()};
+                options = {currentDate: moment(this.currentDate).format('YYYY-MM-DD') || Date.today()};
             view.show(options);
         },
         navigateToInsertView: function(el) {
