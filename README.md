@@ -1,7 +1,7 @@
-argos-saleslogix-20_for_754
+argos-saleslogix-754
 ===========================
 
-Compatibility module for running the Sage SalesLogix Mobile 2.0, 2.1, and 2.2 client with the SalesLogix 7.5.4 platform.
+Compatibility module for running the SalesLogix Mobile 2.0, 2.1, 2.2 and 3.0 client with the Saleslogix 7.5.4 platform.
 
 ##To Develop
 
@@ -78,6 +78,6 @@ To:
 The argos-saleslogix-20_for_754 module will now be part of the Sage SalesLogix Mobile client.
 
 
-[argos-sdk]: https://github.com/Sage/argos-sdk "Argos SDK Source"
-[argos-saleslogix]: https://github.com/SageSalesLogix/argos-saleslogix "Argos SalesLogix Source"
-[argos-saleslogix-20_for_754]: https://github.com/SageSalesLogix/argos-saleslogix-20_for_754 "Argos SalesLogix BackCompat 754"
+[argos-sdk]: https://github.com/Saleslogix/argos-sdk "Argos SDK Source"
+[argos-saleslogix]: https://github.com/Saleslogix/argos-saleslogix "Argos SalesLogix Source"
+[argos-saleslogix-754]: https://github.com/Saleslogix/argos-saleslogix-754 "Argos SalesLogix BackCompat 754"
