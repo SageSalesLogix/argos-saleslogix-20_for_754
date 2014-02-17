@@ -131,6 +131,12 @@ define('Mobile/BackCompat/ApplicationModule', [
                     type: 'remove'
                 });
             }, this);
+
+            this.registerCustomization('right_drawer', 'right_drawer', {
+                at: function(row) { return row.id === 'kpi'; },
+                type: 'remove'
+            });
+
         }
     });
 });
