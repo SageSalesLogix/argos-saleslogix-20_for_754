@@ -31,7 +31,8 @@ define('Mobile/BackCompat/ApplicationModule', [
     'Mobile/BackCompat/Views/Calendar/WeekView',
     'Mobile/BackCompat/Views/Calendar/MonthView',
     'Mobile/SalesLogix/Views/Activity/List',
-    'Mobile/SalesLogix/Views/Home'
+    'Mobile/SalesLogix/Views/Home',
+    'Mobile/SalesLogix/Views/LeftDrawer'
 ], function(
     declare,
     lang,
@@ -51,7 +52,8 @@ define('Mobile/BackCompat/ApplicationModule', [
     WeekView,
     MonthView,
     ActivityList,
-    HomeView
+    HomeView,
+    LeftDrawer
 ) {
 
     return declare('Mobile.BackCompat.ApplicationModule', [ApplicationModule], {
@@ -79,6 +81,7 @@ define('Mobile/BackCompat/ApplicationModule', [
             this.inherited(arguments);
             var originalGetDefaultViews = Application.prototype.getDefaultViews,
                 originalNavigateToInitialView = Application.prototype.navigateToInitialView,
+                originalShow = LeftDrawer.prototype.show,
                 nodes, widget, originalClear, attachmentRelatedViews;
             lang.extend(Application, {
                 getDefaultViews: function() {
@@ -137,6 +140,12 @@ define('Mobile/BackCompat/ApplicationModule', [
                 type: 'remove'
             });
 
+            lang.extend(Mobile.SalesLogix.Views.LeftDrawer, {
+                show: function() {
+                    domClass.toggle(this.domNode, 'list-hide-search', true);
+                    originalShow.apply(this, arguments);
+                }
+            });
         }
     });
 });
