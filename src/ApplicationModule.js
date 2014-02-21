@@ -82,12 +82,24 @@ define('Mobile/BackCompat/ApplicationModule', [
         loadCustomizations: function() {
             this.inherited(arguments);
 
+            this.clearMetricPrefs();
             this.removeViews();
             this.removeSpeedSearch();
             this.removeAttachments();
             this.removeKPIS();
             this.changeUserListQuery();
 
+        },
+        clearMetricPrefs: function() {
+            // Required if the user happend to load metric/KPI widgets on an 8.0 version (developer, QA, etc)
+            var app = window.App
+            if (app) {
+                app._loadPreferences();
+                if (app.preferences && app.preferences.metrics) {
+                    delete app.preferences.metrics;
+                    app.persistPreferences();
+                }
+            }
         },
         removeViews: function() {
             var originalGetDefaultViews = Application.prototype.getDefaultViews,
