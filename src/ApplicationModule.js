@@ -82,7 +82,7 @@ define('Mobile/BackCompat/ApplicationModule', [
             var originalGetDefaultViews = Application.prototype.getDefaultViews,
                 originalNavigateToInitialView = Application.prototype.navigateToInitialView,
                 originalShow = LeftDrawer.prototype.show,
-                nodes, widget, originalClear, attachmentRelatedViews;
+                nodes, widget, originalClear, attachmentRelatedViews, attachmentQuickActions;
             lang.extend(Application, {
                 getDefaultViews: function() {
                     var views, removeView;
@@ -146,6 +146,27 @@ define('Mobile/BackCompat/ApplicationModule', [
                     originalShow.apply(this, arguments);
                 }
             });
+
+            attachmentQuickActions = [
+                'account_list',
+                'activity_list',
+                'myactivity_list',
+                'contact_list',
+                'history_list',
+                'lead_list',
+                'opportunity_list',
+                'ticket_list'
+            ];
+
+            array.forEach(attachmentQuickActions, function(view) {
+                this.registerCustomization('list/actions', view, {
+                    at: function(row) {
+                        return row.id === 'addAttachment';
+                    },
+                    type: 'remove'
+                });
+            }, this);
+
         }
     });
 });

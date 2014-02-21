@@ -7,7 +7,7 @@ define('configuration/backcompat/development', ['configuration/development', 'Mo
             'crm': {
                 isDefault: true,
                 offline: true,
-                url: 'http://localhost/sdata/slx/dynamic/-/',
+                url: 'http://10.40.241.251/sdata/slx/dynamic/-/',
                 json: true
             }
         }
