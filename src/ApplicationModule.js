@@ -82,6 +82,7 @@ define('Mobile/BackCompat/ApplicationModule', [
         loadCustomizations: function() {
             this.inherited(arguments);
 
+            this.fixTicketActivities();
             this.clearMetricPrefs();
             this.removeViews();
             this.removeSpeedSearch();
@@ -89,6 +90,21 @@ define('Mobile/BackCompat/ApplicationModule', [
             this.removeKPIS();
             this.changeUserListQuery();
 
+        },
+        fixTicketActivities: function() {
+            this.registerCustomization('detail', 'ticketactivity_detail', {
+                at: function(row) {
+                    return row.property === 'RateTypeDescription.RateTypeCode';
+                },
+                type: 'remove'
+            });
+
+            this.registerCustomization('detail', 'ticketactivity_detail', {
+                at: function(row) {
+                    return row.name === 'RelatedItemsSection';
+                },
+                type: 'remove'
+            });
         },
         clearMetricPrefs: function() {
             // Required if the user happend to load metric/KPI widgets on an 8.0 version (developer, QA, etc)
