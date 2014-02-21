@@ -99,6 +99,12 @@ define('Mobile/BackCompat/ApplicationModule', [
                     delete app.preferences.metrics;
                     app.persistPreferences();
                 }
+
+                // Disable loading of the default metrics payload
+                lang.extend(Application, {
+                     setDefaultMetricPreferences: function() {
+                     }
+                });
             }
         },
         removeViews: function() {
@@ -180,6 +186,7 @@ define('Mobile/BackCompat/ApplicationModule', [
                 'account_list',
                 'activity_list',
                 'myactivity_list',
+                'activity_related',
                 'contact_list',
                 'history_list',
                 'lead_list',
@@ -197,7 +204,7 @@ define('Mobile/BackCompat/ApplicationModule', [
             array.forEach(attachmentQuickActions, function(view) {
                 this.registerCustomization('list/actions', view, {
                     at: function(row) {
-                        return row.id === 'addAttachment';
+                        return row.id === 'addAttachment' || row.id === 'complete';
                     },
                     type: 'remove'
                 });
