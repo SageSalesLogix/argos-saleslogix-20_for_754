@@ -19,7 +19,7 @@ define('Mobile/BackCompat/Views/Calendar/MonthView', [
             '<li data-action="activateEntry" data-key="{%= $.Activity.$key %}" data-descriptor="{%: $.$descriptor %}" data-activity-type="{%: $.Activity.Type %}">',
             '<table class="calendar-entry-table"><tr>',
             '<td class="entry-table-icon">',
-            '<button data-action="selectEntry" class="list-item-selector button"><img src="{%= $$.activityIconByType[$.Type] || $$.selectIcon %}" class="icon" /></button>',
+            '<button data-action="selectEntry" class="list-item-selector button"><img src="{%= $$.activityIconByType[$.Activity.Type] || $$.selectIcon %}" class="icon" /></button>',
             '</td>',
             '<td class="entry-table-time">{%! $$.activityTimeTemplate %}</td>',
             '<td class="entry-table-description">{%! $$.activityItemTemplate %}</td>',
