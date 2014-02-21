@@ -32,7 +32,8 @@ define('Mobile/BackCompat/ApplicationModule', [
     'Mobile/BackCompat/Views/Calendar/MonthView',
     'Mobile/SalesLogix/Views/Activity/List',
     'Mobile/SalesLogix/Views/Home',
-    'Mobile/SalesLogix/Views/LeftDrawer'
+    'Mobile/SalesLogix/Views/LeftDrawer',
+    'Mobile/SalesLogix/Views/User/List'
 ], function(
     declare,
     lang,
@@ -53,7 +54,8 @@ define('Mobile/BackCompat/ApplicationModule', [
     MonthView,
     ActivityList,
     HomeView,
-    LeftDrawer
+    LeftDrawer,
+    UserList
 ) {
 
     return declare('Mobile.BackCompat.ApplicationModule', [ApplicationModule], {
@@ -79,10 +81,18 @@ define('Mobile/BackCompat/ApplicationModule', [
 
         loadCustomizations: function() {
             this.inherited(arguments);
+
+            this.removeViews();
+            this.removeSpeedSearch();
+            this.removeAttachments();
+            this.removeKPIS();
+            this.changeUserListQuery();
+
+        },
+        removeViews: function() {
             var originalGetDefaultViews = Application.prototype.getDefaultViews,
-                originalNavigateToInitialView = Application.prototype.navigateToInitialView,
-                originalShow = LeftDrawer.prototype.show,
-                nodes, widget, originalClear, attachmentRelatedViews, attachmentQuickActions;
+                originalNavigateToInitialView = Application.prototype.navigateToInitialView;
+
             lang.extend(Application, {
                 getDefaultViews: function() {
                     var views, removeView;
@@ -118,6 +128,32 @@ define('Mobile/BackCompat/ApplicationModule', [
                 delete App.views.myattachment_list;
             }
 
+        },
+        removeSpeedSearch: function() {
+            var originalShow = LeftDrawer.prototype.show;
+            lang.extend(Mobile.SalesLogix.Views.LeftDrawer, {
+                show: function() {
+                    domClass.toggle(this.domNode, 'list-hide-search', true);
+                    originalShow.apply(this, arguments);
+                }
+            });
+
+        },
+        changeUserListQuery: function() {
+            // 8.0+ you can use the enum value, 7.5.4 requires the string
+            lang.extend(UserList, {
+                queryWhere: 'Enabled eq true and (Type ne "WebViewer" AND Type ne "Retired" AND Type ne "Template" AND Type ne "AddOn")',
+            });
+        },
+        removeKPIS: function() {
+            this.registerCustomization('right_drawer', 'right_drawer', {
+                at: function(row) { return row.id === 'kpi'; },
+                type: 'remove'
+            });
+        },
+        removeAttachments: function() {
+            var attachmentRelatedViews, attachmentQuickActions;
+
             attachmentRelatedViews = [
                 'account_detail',
                 'activity_detail',
@@ -127,25 +163,6 @@ define('Mobile/BackCompat/ApplicationModule', [
                 'opportunity_detail',
                 'ticket_detail'
             ];
-
-            array.forEach(attachmentRelatedViews, function (view) {
-                this.registerCustomization('detail', view, {
-                    at: function(row) { return row.name === 'AttachmentRelated'; },
-                    type: 'remove'
-                });
-            }, this);
-
-            this.registerCustomization('right_drawer', 'right_drawer', {
-                at: function(row) { return row.id === 'kpi'; },
-                type: 'remove'
-            });
-
-            lang.extend(Mobile.SalesLogix.Views.LeftDrawer, {
-                show: function() {
-                    domClass.toggle(this.domNode, 'list-hide-search', true);
-                    originalShow.apply(this, arguments);
-                }
-            });
 
             attachmentQuickActions = [
                 'account_list',
@@ -158,6 +175,13 @@ define('Mobile/BackCompat/ApplicationModule', [
                 'ticket_list'
             ];
 
+            array.forEach(attachmentRelatedViews, function (view) {
+                this.registerCustomization('detail', view, {
+                    at: function(row) { return row.name === 'AttachmentRelated'; },
+                    type: 'remove'
+                });
+            }, this);
+
             array.forEach(attachmentQuickActions, function(view) {
                 this.registerCustomization('list/actions', view, {
                     at: function(row) {
@@ -166,7 +190,6 @@ define('Mobile/BackCompat/ApplicationModule', [
                     type: 'remove'
                 });
             }, this);
-
         }
     });
 });
