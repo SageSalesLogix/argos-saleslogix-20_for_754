@@ -184,14 +184,20 @@ define('Mobile/BackCompat/ApplicationModule', [
 
             attachmentQuickActions = [
                 'account_list',
+                'account_related',
                 'activity_list',
                 'myactivity_list',
                 'activity_related',
                 'contact_list',
+                'contact_related',
                 'history_list',
+                'history_related',
                 'lead_list',
+                'lead_related',
                 'opportunity_list',
-                'ticket_list'
+                'opportunity_related',
+                'ticket_list',
+                'ticket_related'
             ];
 
             array.forEach(attachmentRelatedViews, function (view) {
@@ -204,7 +210,16 @@ define('Mobile/BackCompat/ApplicationModule', [
             array.forEach(attachmentQuickActions, function(view) {
                 this.registerCustomization('list/actions', view, {
                     at: function(row) {
-                        return row.id === 'addAttachment' || row.id === 'complete';
+                        return row.id === 'addAttachment';
+                    },
+                    type: 'remove'
+                });
+            }, this);
+
+            array.forEach(attachmentQuickActions, function(view) {
+                this.registerCustomization('list/actions', view, {
+                    at: function(row) {
+                        return row.id === 'complete';
                     },
                     type: 'remove'
                 });
