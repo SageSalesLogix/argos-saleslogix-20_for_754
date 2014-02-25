@@ -65,6 +65,12 @@ define('Mobile/BackCompat/Views/Activity/Edit', [
                 return removeItems.indexOf(item.name) === -1;
             });
 
+            array.forEach(layout, function(item) {
+                if (item.name === 'RecurrenceUI') {
+                    item.type = 'hidden';
+                }
+            });
+
             return layout;
         }
     });
