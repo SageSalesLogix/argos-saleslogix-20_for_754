@@ -46,7 +46,7 @@ define('Mobile/BackCompat/Views/Calendar/DayView', [
         ]),
         contractName: 'dynamic',
         resourceKind: 'useractivities',
-        queryOrderBy: 'Activity.Timeless desc, Activity.StartDate',
+        queryOrderBy: 'Activity.StartDate desc',
         querySelect: [
             'Activity/Description',
             'Activity/StartDate',
