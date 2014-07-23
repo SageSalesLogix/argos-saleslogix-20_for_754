@@ -115,7 +115,7 @@
 
     <script type="text/javascript">
     (function() {
-        var application = 'Mobile/SalesLogix/Application',
+        var application = 'Mobile/BackCompat/Application',
             configuration = <%= Serialize(
                 Enumerate("configuration", (file) => file.Name == "production.js")
                     .Select(item => item.Path.Substring(0, item.Path.Length - 3))
