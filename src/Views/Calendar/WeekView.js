@@ -92,6 +92,7 @@ define('Mobile/BackCompat/Views/Calendar/WeekView', [
 
             var todayNode = this.addTodayDom(),
                 entryGroups = this.entryGroups,
+                feedLength = feed['$resources'].length,
                 entryOrder = [],
                 dateCompareString = 'YYYY-MM-DD',
                 o = [],
